@@ -1,0 +1,24 @@
+# Credentials - NEVER commit these
+kaggle.json
+templates/kaggle.json
+*.json.bak
+
+# Large model files
+models/*.pth
+models/*.bin
+models/*.safetensors
+models/bert-base-uncased/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs
+logs/
+
+# Database (contains participant data)
+data/phishing_defense.db
+
+# plots (generated files, not source code)
+plots/
