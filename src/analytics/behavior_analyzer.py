@@ -4,7 +4,10 @@ Analyzes user behavior patterns from games and detection attempts
 """
 
 import logging
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    np = None
 import pandas as pd
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
