@@ -1,0 +1,11 @@
+flask==3.1.0
+flask-cors==4.0.0
+flask-socketio==5.3.6
+bcrypt==4.1.2
+gunicorn==21.2.0
+eventlet==0.35.2
+scikit-learn==1.4.0
+pandas==2.2.0
+numpy==1.26.4
+plotly==5.19.0
+python-dotenv==1.0.1

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phishing Awareness Study — Register</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f0f4f8;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    padding: 36px 32px;
+    max-width: 480px;
+    width: 100%;
+  }
+  .badge {
+    background: #1e3a5f;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+  h1 { font-size: 22px; color: #1e3a5f; margin-bottom: 6px; }
+  .subtitle { color: #666; font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+  .info-box {
+    background: #eef5ff;
+    border-left: 4px solid #3b82f6;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #1e40af;
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+  label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 5px; }
+  input, select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus { outline: none; border-color: #3b82f6; }
+  .radio-group { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+  .radio-group label {
+    font-weight: 400; display: flex; align-items: center; gap: 6px;
+    cursor: pointer; margin-bottom: 0;
+  }
+  .submit-btn {
+    width: 100%;
+    padding: 13px;
+    background: #1e3a5f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 8px;
+  }
+  .submit-btn:hover { background: #2d5491; }
+  .error { color: #dc2626; font-size: 13px; margin-bottom: 14px; }
+  .login-link { text-align: center; margin-top: 18px; font-size: 13px; color: #666; }
+  .login-link a { color: #3b82f6; text-decoration: none; }
+  .divider { border: none; border-top: 1px solid #e5e7eb; margin: 20px 0; }
+</style>
+</head>
+<body>
+<div class="card">
+  <span class="badge">🔬 PhD Research Study — RTMNU</span>
+  <h1>Phishing Awareness Training</h1>
+  <p class="subtitle">You are being invited to participate in a study on cybersecurity awareness. This takes two 20-minute sessions, one week apart.</p>
+
+  <div class="info-box">
+    📋 <strong>What to expect:</strong><br>
+    Session 1 (Today): Short quiz → Training game<br>
+    Session 2 (Next week): Same quiz again<br>
+    Your data is confidential and used only for academic research.
+  </div>
+
+  {% if error %}
+  <div class="error">⚠ {{ error }}</div>
+  {% endif %}
+
+  <form method="POST" action="/pilot/register">
+
+    <label>Choose a Participant ID <span style="color:#999;font-weight:400">(e.g. your initials + birth year: AK1998)</span></label>
+    <input type="text" name="participant_id" placeholder="e.g. AK1998" required minlength="4" maxlength="20">
+
+    <label>Password <span style="color:#999;font-weight:400">(you'll use this to log in for Session 2)</span></label>
+    <input type="password" name="password" placeholder="Create a password" required minlength="4">
+
+    <hr class="divider">
+
+    <label>Age</label>
+    <select name="age" required>
+      <option value="">— Select —</option>
+      <option>18–24</option><option>25–34</option>
+      <option>35–44</option><option>45–54</option><option>55+</option>
+    </select>
+
+    <label>Gender</label>
+    <div class="radio-group">
+      <label><input type="radio" name="gender" value="Male" required> Male</label>
+      <label><input type="radio" name="gender" value="Female"> Female</label>
+      <label><input type="radio" name="gender" value="Other"> Other</label>
+      <label><input type="radio" name="gender" value="Prefer not to say"> Prefer not to say</label>
+    </div>
+
+    <label>Highest education level</label>
+    <select name="education" required>
+      <option value="">— Select —</option>
+      <option>High School</option>
+      <option>Bachelor's Degree</option>
+      <option>Master's Degree</option>
+      <option>PhD / Doctoral</option>
+      <option>Other</option>
+    </select>
+
+    <label>How many hours per day do you use email?</label>
+    <select name="email_hours" required>
+      <option value="">— Select —</option>
+      <option>Less than 1 hour</option>
+      <option>1–2 hours</option>
+      <option>3–5 hours</option>
+      <option>More than 5 hours</option>
+    </select>
+
+    <label>Have you received formal cybersecurity or phishing awareness training before?</label>
+    <div class="radio-group">
+      <label><input type="radio" name="prior_training" value="Yes" required> Yes</label>
+      <label><input type="radio" name="prior_training" value="No"> No</label>
+      <label><input type="radio" name="prior_training" value="Not sure"> Not sure</label>
+    </div>
+
+    <button type="submit" class="submit-btn">Start Session 1 →</button>
+  </form>
+
+  <div class="login-link">
+    Returning for Session 2? <a href="/pilot/login">Log in here</a>
+  </div>
+</div>
+</body>
+</html>

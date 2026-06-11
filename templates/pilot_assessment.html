@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ title }}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; padding: 20px; }
+  .container { max-width: 720px; margin: 0 auto; }
+  .header {
+    background: #1e3a5f; color: white;
+    padding: 24px 28px; border-radius: 12px 12px 0 0;
+  }
+  .header h1 { font-size: 20px; margin-bottom: 8px; }
+  .header p  { font-size: 13px; opacity: 0.85; line-height: 1.5; }
+  .progress-bar {
+    background: #e5e7eb; height: 6px;
+    border-radius: 0; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: #3b82f6;
+    transition: width 0.4s ease;
+  }
+  .question-card {
+    background: white;
+    border-radius: 0 0 12px 12px;
+    padding: 28px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  }
+  .q-counter { font-size: 12px; color: #9ca3af; margin-bottom: 10px; font-weight: 600; }
+  .q-type-badge {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px; margin-bottom: 12px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .badge-email  { background: #dbeafe; color: #1d4ed8; }
+  .badge-url    { background: #d1fae5; color: #065f46; }
+  .email-preview {
+    background: #f9fafb; border: 1px solid #e5e7eb;
+    border-radius: 8px; padding: 16px; margin-bottom: 20px;
+  }
+  .email-field { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+  .email-field span { font-weight: 600; color: #374151; }
+  .email-subject { font-weight: 700; color: #111827; font-size: 15px; margin: 10px 0 6px; }
+  .email-body { font-size: 13px; color: #374151; line-height: 1.6; }
+  .url-preview {
+    background: #f9fafb; border: 1px solid #e5e7eb;
+    border-radius: 8px; padding: 14px 16px; margin-bottom: 20px;
+    font-family: monospace; font-size: 13px; color: #374151;
+    word-break: break-all;
+  }
+  .url-label { font-size: 11px; color: #9ca3af; margin-bottom: 4px; }
+  .choices { display: flex; gap: 12px; }
+  .choice-btn {
+    flex: 1; padding: 14px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px; background: white;
+    font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .choice-btn:hover { border-color: #3b82f6; background: #eff6ff; }
+  .choice-btn.selected-phishing  { border-color: #ef4444; background: #fef2f2; color: #dc2626; }
+  .choice-btn.selected-legit     { border-color: #22c55e; background: #f0fdf4; color: #16a34a; }
+  .next-btn {
+    width: 100%; margin-top: 20px; padding: 14px;
+    background: #1e3a5f; color: white;
+    border: none; border-radius: 8px;
+    font-size: 15px; font-weight: 600;
+    cursor: pointer; display: none;
+  }
+  .next-btn:hover { background: #2d5491; }
+  .timer-bar {
+    height: 4px; background: #fee2e2;
+    border-radius: 4px; margin-bottom: 18px; overflow: hidden;
+  }
+  .timer-fill { height: 100%; background: #f87171; transition: width 0.5s linear; }
+  .complete-screen {
+    display: none; text-align: center; padding: 40px 20px;
+  }
+  .complete-screen h2 { font-size: 26px; color: #1e3a5f; margin-bottom: 12px; }
+  .score-display {
+    font-size: 56px; font-weight: 700; color: #1e3a5f;
+    margin: 20px 0;
+  }
+  .score-label { font-size: 14px; color: #6b7280; margin-bottom: 28px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🛡 {{ title }}</h1>
+    <p>{{ instructions }}</p>
+  </div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill" style="width:0%"></div>
+  </div>
+  <div class="question-card" id="questionCard">
+    <div id="questionArea">
+      <!-- dynamically rendered by JS -->
+    </div>
+    <div class="complete-screen" id="completeScreen">
+      <h2>Assessment Complete ✓</h2>
+      <div class="score-display" id="scoreDisplay">0/10</div>
+      <div class="score-label" id="scoreLabel">Calculating...</div>
+      <button class="next-btn" id="continueBtn" style="display:block;margin-top:0"
+              onclick="submitAndContinue()">Continue →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = {{ questions | tojson }};
+const ASSESSMENT_TYPE = "{{ assessment_type }}";
+let currentIdx = 0;
+let answers    = [];
+let qStartTime = Date.now();
+let sessionStartTime = Date.now();
+
+function renderQuestion() {
+  if (currentIdx >= QUESTIONS.length) {
+    showComplete();
+    return;
+  }
+  const q = QUESTIONS[currentIdx];
+  const pct = (currentIdx / QUESTIONS.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  qStartTime = Date.now();
+
+  let contentHtml = '';
+  if (q.type === 'email') {
+    const c = q.content;
+    contentHtml = `
+      <span class="q-type-badge badge-email">📧 Email</span>
+      <div class="email-preview">
+        <div class="email-field">From: <span>${c.sender}</span></div>
+        <div class="email-field">Time: <span>${c.timestamp}</span></div>
+        <div class="email-subject">${c.subject}</div>
+        <div class="email-body">${c.body}</div>
+      </div>`;
+  } else {
+    const c = q.content;
+    contentHtml = `
+      <span class="q-type-badge badge-url">🔗 URL</span>
+      <div class="url-preview">
+        <div class="url-label">Displayed text: "${c.display_text || c.url}"</div>
+        <div>${c.url}</div>
+      </div>`;
+  }
+
+  document.getElementById('questionArea').innerHTML = `
+    <div class="q-counter">Question ${currentIdx + 1} of ${QUESTIONS.length}</div>
+    ${contentHtml}
+    <div class="choices">
+      <button class="choice-btn" id="btnPhishing"
+              onclick="selectAnswer('phishing', this)">
+        🚨 Phishing
+      </button>
+      <button class="choice-btn" id="btnLegit"
+              onclick="selectAnswer('legitimate', this)">
+        ✅ Legitimate
+      </button>
+    </div>
+    <button class="next-btn" id="nextBtn" onclick="nextQuestion()">
+      ${currentIdx === QUESTIONS.length - 1 ? 'Finish Assessment' : 'Next →'}
+    </button>
+  `;
+}
+
+function selectAnswer(answer, btn) {
+  // Clear previous selection
+  document.querySelectorAll('.choice-btn').forEach(b => {
+    b.classList.remove('selected-phishing', 'selected-legit');
+  });
+  if (answer === 'phishing') {
+    btn.classList.add('selected-phishing');
+  } else {
+    btn.classList.add('selected-legit');
+  }
+  btn.dataset.selected = answer;
+
+  const timeTaken = Date.now() - qStartTime;
+  // Store answer
+  const existing = answers.findIndex(a => a.challenge_id === QUESTIONS[currentIdx].id);
+  const entry = {
+    challenge_id: QUESTIONS[currentIdx].id,
+    user_answer:  answer,
+    time_ms:      timeTaken
+  };
+  if (existing >= 0) answers[existing] = entry;
+  else answers.push(entry);
+
+  document.getElementById('nextBtn').style.display = 'block';
+}
+
+function nextQuestion() {
+  // Require an answer
+  const q = QUESTIONS[currentIdx];
+  const answered = answers.find(a => a.challenge_id === q.id);
+  if (!answered) {
+    alert('Please select Phishing or Legitimate before continuing.');
+    return;
+  }
+  currentIdx++;
+  renderQuestion();
+}
+
+function showComplete() {
+  document.getElementById('progressFill').style.width = '100%';
+  document.getElementById('questionArea').style.display = 'none';
+  document.getElementById('completeScreen').style.display = 'block';
+  document.getElementById('scoreDisplay').textContent = '✓';
+  document.getElementById('scoreLabel').textContent =
+    'All ' + QUESTIONS.length + ' questions answered. Click Continue to submit.';
+}
+
+function submitAndContinue() {
+  document.getElementById('continueBtn').disabled = true;
+  document.getElementById('continueBtn').textContent = 'Submitting...';
+
+  fetch('/api/pilot/submit_assessment', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      assessment_type: ASSESSMENT_TYPE,
+      answers: answers,
+      started_at: new Date(sessionStartTime).toISOString()
+    })
+  })
+  .then(r => r.json())
+  .then(data => {
+    const score = data.score;
+    const total = data.total;
+    document.getElementById('scoreDisplay').textContent = score + '/' + total;
+    document.getElementById('scoreLabel').textContent =
+      'You got ' + score + ' out of ' + total + ' correct (' + data.accuracy + '%)';
+    document.getElementById('continueBtn').textContent = 'Continue →';
+    document.getElementById('continueBtn').disabled = false;
+    document.getElementById('continueBtn').onclick = () => {
+      window.location.href = data.next_url;
+    };
+  })
+  .catch(err => {
+    alert('Submission failed. Please try again.');
+    document.getElementById('continueBtn').disabled = false;
+    document.getElementById('continueBtn').textContent = 'Continue →';
+  });
+}
+
+// Start
+renderQuestion();
+</script>
+</body>
+</html>
