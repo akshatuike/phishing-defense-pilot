@@ -10,6 +10,7 @@ from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 import json
 from datetime import datetime
+import csv, io
 
 # Import our custom modules
 from src.gamification.game_engine import GameEngine
@@ -324,6 +325,9 @@ def create_app():
     """Application factory for testing"""
     return app
 
+# PILOT STUDY ROUTES
+exec(open('pilot_routes.py').read())
+
 if __name__ == '__main__':
     # Create logs directory if it doesn't exist
     os.makedirs('logs', exist_ok=True)
@@ -337,9 +341,8 @@ if __name__ == '__main__':
     logger.info("Starting Gamification-Based Phishing Defense System...")
     
     # Run the application
-    socketio.run(
-        app,
-        host='0.0.0.0',
-        port=int(os.environ.get('PORT', 5000)),
-        debug=app.config['DEBUG']
-    )
+    app.run(
+    host='0.0.0.0',
+    port=int(os.environ.get('PORT', 5000)),
+    debug=app.config['DEBUG']
+)

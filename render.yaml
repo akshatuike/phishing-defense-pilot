@@ -3,7 +3,7 @@ services:
     name: phishing-defense-pilot
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn --worker-class gevent -w 1 app:app
+    startCommand: gunicorn -w 1 app:app
     envVars:
       - key: SECRET_KEY
         generateValue: true
