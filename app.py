@@ -14,11 +14,21 @@ import csv, io
 
 # Import our custom modules
 from src.gamification.game_engine import GameEngine
-from src.detection.phishing_detector import PhishingDetector
 from src.database.user_manager import UserManager
 from src.analytics.behavior_analyzer import BehaviorAnalyzer
 from src.utils.config import Config
-from src.visualization.plot_generator import PlotGenerator
+
+# Detection and visualization optional — not needed for pilot study
+try:
+    from src.detection.phishing_detector import PhishingDetector
+    from src.visualization.plot_generator import PlotGenerator
+    phishing_detector = PhishingDetector()
+    plot_generator = None
+    DETECTION_AVAILABLE = True
+except ImportError:
+    phishing_detector = None
+    plot_generator = None
+    DETECTION_AVAILABLE = False
 
 # Configure logging
 logging.basicConfig(
@@ -46,9 +56,8 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 config = Config()
 user_manager = UserManager()
 game_engine = GameEngine()
-phishing_detector = PhishingDetector()
 behavior_analyzer = BehaviorAnalyzer()
-plot_generator = PlotGenerator(user_manager, behavior_analyzer)
+
 
 @app.route('/')
 def index():
