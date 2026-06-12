@@ -120,7 +120,7 @@ class GameEngine:
                     "id": "phish_002",
                     "type": "email",
                     "content": {
-                        "subject": "Invoice #INV-2026-001 attached",
+                        "subject": "Invoice #INV-2024-001 attached",
                         "sender": "billing@microsoft-support.com",
                         "body": "Please find attached invoice for your recent purchase. "
                                 "If you have any questions, please contact us immediately.",
