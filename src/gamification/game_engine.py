@@ -106,7 +106,7 @@ class GameEngine:
                         "body": "Dear valued customer, your account has been suspended "
                                 "due to suspicious activity. Click here to verify your "
                                 "identity immediately: http://paypa1-verify.com/login",
-                        "timestamp": "2024-01-15 10:30:00"
+                        "timestamp": "2026-01-15 10:30:00"
                     },
                     "correct_answer": "phishing",
                     "explanation": (
@@ -120,11 +120,11 @@ class GameEngine:
                     "id": "phish_002",
                     "type": "email",
                     "content": {
-                        "subject": "Invoice #INV-2024-001 attached",
+                        "subject": "Invoice #INV-2026-001 attached",
                         "sender": "billing@microsoft-support.com",
                         "body": "Please find attached invoice for your recent purchase. "
                                 "If you have any questions, please contact us immediately.",
-                        "timestamp": "2024-01-15 14:22:00"
+                        "timestamp": "2026-01-15 14:22:00"
                     },
                     "correct_answer": "phishing",
                     "explanation": (
@@ -143,7 +143,7 @@ class GameEngine:
                         "body": "Your recent order has been shipped and is expected to "
                                 "arrive on January 20th. Track your package: "
                                 "https://amazon.com/track/12345",
-                        "timestamp": "2024-01-15 09:15:00"
+                        "timestamp": "2026-01-15 09:15:00"
                     },
                     "correct_answer": "legitimate",
                     "explanation": (
@@ -163,7 +163,7 @@ class GameEngine:
                         "body": "We were unable to process your payment. Update your "
                                 "billing info within 24 hours to avoid suspension: "
                                 "http://netf1ix-account.com/update",
-                        "timestamp": "2024-02-10 08:15:00"
+                        "timestamp": "2026-02-10 08:15:00"
                     },
                     "correct_answer": "phishing",
                     "explanation": (
@@ -183,7 +183,7 @@ class GameEngine:
                         "body": "Your pull request #247 'Fix login bug' in "
                                 "akshat/phishing-defense was merged by admin. "
                                 "View it at https://github.com/akshat/phishing-defense/pull/247",
-                        "timestamp": "2024-02-10 11:30:00"
+                        "timestamp": "2026-02-10 11:30:00"
                     },
                     "correct_answer": "legitimate",
                     "explanation": (
@@ -202,7 +202,7 @@ class GameEngine:
                         "body": "Dear Customer, your account has been flagged for unusual "
                                 "activity. Login immediately to avoid account freeze: "
                                 "http://sbi-secure-login.net/verify",
-                        "timestamp": "2024-02-11 09:45:00"
+                        "timestamp": "2026-02-11 09:45:00"
                     },
                     "correct_answer": "phishing",
                     "explanation": (
@@ -222,7 +222,7 @@ class GameEngine:
                         "body": "The recording of your Feb 10 team meeting is now available. "
                                 "View it at: https://zoom.us/rec/share/ABC123XYZ. "
                                 "This link will expire in 30 days.",
-                        "timestamp": "2024-02-10 16:00:00"
+                        "timestamp": "2026-02-10 16:00:00"
                     },
                     "correct_answer": "legitimate",
                     "explanation": (
@@ -243,7 +243,7 @@ class GameEngine:
                         "body": "As CEO, I need you to wire $50,000 immediately for a "
                                 "confidential business opportunity. This is urgent and "
                                 "confidential. Reply only to this email.",
-                        "timestamp": "2024-01-15 16:45:00"
+                        "timestamp": "2026-01-15 16:45:00"
                     },
                     "correct_answer": "phishing",       # ## PHASE1: was "whaling" — normalised
                     "explanation": (
@@ -263,7 +263,7 @@ class GameEngine:
                         "body": "We are updating payroll records before month-end. "
                                 "Please reply with your bank account number and IFSC code "
                                 "to ensure salary is credited correctly. Deadline: today 5 PM.",
-                        "timestamp": "2024-03-01 14:00:00"
+                        "timestamp": "2026-03-01 14:00:00"
                     },
                     "correct_answer": "phishing",
                     "explanation": (
