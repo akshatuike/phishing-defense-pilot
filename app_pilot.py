@@ -82,11 +82,7 @@ def pilot_register():
             'session':          1
         }
 
-        with __import__('sqlite3').connect(user_manager.db_path) as conn:
-            conn.execute(
-                "UPDATE users SET profile_data=? WHERE id=?",
-                (__import__('json').dumps(demographics), user_id)
-            )
+        user_manager.update_profile_data(user_id, demographics)
 
         # Auto-login
         session['user_id']   = user_id
@@ -115,13 +111,7 @@ def pilot_login():
         session['username']  = username
 
         # Determine which session they are on
-        import sqlite3, json as _json
-        with sqlite3.connect(user_manager.db_path) as conn:
-            row = conn.execute(
-                "SELECT profile_data FROM users WHERE id=?",
-                (user['user_id'],)
-            ).fetchone()
-            profile = _json.loads(row[0]) if row and row[0] else {}
+        profile = user_manager.get_profile_data(user['user_id'])
 
         session_no = profile.get('session', 1)
         if session_no == 1:
@@ -232,24 +222,14 @@ def submit_assessment():
     )
 
     # Update session marker in profile_data
-    import sqlite3
-    with sqlite3.connect(user_manager.db_path) as conn:
-        row = conn.execute(
-            "SELECT profile_data FROM users WHERE id=?", (user_id,)
-        ).fetchone()
-        profile = _json.loads(row[0]) if row and row[0] else {}
-
-        if atype == 'pre':
-            profile['session'] = 2
-            profile['pre_completed_at'] = datetime.now().isoformat()
-        elif atype == 'post':
-            profile['session'] = 3
-            profile['post_completed_at'] = datetime.now().isoformat()
-
-        conn.execute(
-            "UPDATE users SET profile_data=? WHERE id=?",
-            (_json.dumps(profile), user_id)
-        )
+    profile = user_manager.get_profile_data(user_id)
+    if atype == 'pre':
+        profile['session'] = 2
+        profile['pre_completed_at'] = datetime.now().isoformat()
+    elif atype == 'post':
+        profile['session'] = 3
+        profile['post_completed_at'] = datetime.now().isoformat()
+    user_manager.update_profile_data(user_id, profile)
 
     response = {
         'score':         score,
@@ -274,39 +254,20 @@ def pilot_thankyou():
 def export_pilot_data():
     """
     Download all pilot study results as CSV.
-    Open this URL in your browser:  https://your-app.onrender.com/admin/export_pilot
-    Protected by simple query-param token — change 'phd2024' to something private.
+    Open: https://your-app.onrender.com/admin/export_pilot?token=YOUR_TOKEN
     """
     token = request.args.get('token', '')
     if token != os.environ.get('EXPORT_TOKEN', 'phd2024'):
         return "Forbidden", 403
 
-    import sqlite3, csv, io, json as _json
+    import csv, io
+    from flask import Response
 
-    conn = sqlite3.connect(user_manager.db_path)
-
-    # Get all users with profile data
-    users = conn.execute("""
-        SELECT u.id, u.username, u.profile_data,
-               pre.score  AS pre_score,
-               pre.answers AS pre_answers,
-               post.score AS post_score,
-               post.answers AS post_answers
-        FROM users u
-        LEFT JOIN (
-            SELECT user_id, score, answers
-            FROM game_sessions WHERE game_type='pre_assessment'
-        ) pre  ON pre.user_id  = u.id
-        LEFT JOIN (
-            SELECT user_id, score, answers
-            FROM game_sessions WHERE game_type='post_assessment'
-        ) post ON post.user_id = u.id
-        WHERE u.role = 'participant'
-    """).fetchall()
+    participants = user_manager.get_all_participants()
+    total_questions = len(game_engine.get_assessment_questions())
 
     output = io.StringIO()
     writer = csv.writer(output)
-
     writer.writerow([
         'participant_id', 'username', 'age', 'gender', 'education',
         'email_hours_day', 'prior_training', 'registered_at',
@@ -316,42 +277,37 @@ def export_pilot_data():
         'completed_both_sessions'
     ])
 
-    total_questions = len(game_engine.get_assessment_questions())
+    for p in participants:
+        profile = p['profile']
+        pre_score  = p['pre_score']
+        post_score = p['post_score']
 
-    for row in users:
-        uid, uname, profile_raw, pre_s, pre_a, post_s, post_a = row
-        profile = _json.loads(profile_raw) if profile_raw else {}
+        pre_acc  = round(pre_score  / total_questions * 100, 1) if pre_score  is not None else ''
+        post_acc = round(post_score / total_questions * 100, 1) if post_score is not None else ''
 
-        pre_score  = pre_s  if pre_s  is not None else ''
-        post_score = post_s if post_s is not None else ''
-
-        pre_acc  = round(pre_score  / total_questions * 100, 1) if pre_score  != '' else ''
-        post_acc = round(post_score / total_questions * 100, 1) if post_score != '' else ''
-
-        improvement = (post_score - pre_score) if (pre_score != '' and post_score != '') else ''
-        imp_pct     = round((improvement / total_questions) * 100, 1) if improvement != '' else ''
-        completed   = 'Yes' if (pre_score != '' and post_score != '') else 'No'
+        if pre_score is not None and post_score is not None:
+            improvement = post_score - pre_score
+            imp_pct     = round((improvement / total_questions) * 100, 1)
+            completed   = 'Yes'
+        else:
+            improvement = ''
+            imp_pct     = ''
+            completed   = 'No'
 
         writer.writerow([
-            uid, uname,
+            p['user_id'], p['username'],
             profile.get('age',''), profile.get('gender',''),
             profile.get('education',''), profile.get('email_hours_day',''),
             profile.get('prior_training',''), profile.get('registered_at',''),
-            pre_score,  pre_acc,
-            post_score, post_acc,
+            pre_score if pre_score is not None else '', pre_acc,
+            post_score if post_score is not None else '', post_acc,
             improvement, imp_pct,
             completed
         ])
 
-    conn.close()
     output.seek(0)
-
-    from flask import Response
     return Response(
         output.getvalue(),
         mimetype='text/csv',
         headers={'Content-Disposition': 'attachment; filename=pilot_results.csv'}
     )
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

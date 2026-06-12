@@ -1,9 +1,15 @@
+databases:
+  - name: phishing-pilot-db
+    plan: free
+    databaseName: phishing_pilot
+    user: phishing_pilot_user
+
 services:
   - type: web
     name: phishing-defense-pilot
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn -w 1 app:app
+    startCommand: gunicorn -w 1 app_pilot:app
     envVars:
       - key: SECRET_KEY
         generateValue: true
@@ -11,3 +17,9 @@ services:
         value: "False"
       - key: PYTHON_VERSION
         value: "3.11.0"
+      - key: EXPORT_TOKEN
+        value: "akshat2024phd"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: phishing-pilot-db
+          property: connectionString
