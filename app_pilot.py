@@ -124,12 +124,12 @@ def pilot_login():
             profile = _json.loads(row[0]) if row and row[0] else {}
 
         session_no = profile.get('session', 1)
-        session['session_no'] = session_no
-
         if session_no == 1:
             return redirect(url_for('pilot_pretest'))
-        else:
+        elif session_no == 2:
             return redirect(url_for('pilot_posttest'))
+        else:
+            return redirect(url_for('pilot_thankyou'))
 
     return render_template('pilot_login.html')
 
@@ -231,20 +231,25 @@ def submit_assessment():
         completed  = True
     )
 
-    # If post-test, update session marker so they don't repeat
-    if atype == 'post':
-        import sqlite3
-        with sqlite3.connect(user_manager.db_path) as conn:
-            row = conn.execute(
-                "SELECT profile_data FROM users WHERE id=?", (user_id,)
-            ).fetchone()
-            profile = _json.loads(row[0]) if row and row[0] else {}
+    # Update session marker in profile_data
+    import sqlite3
+    with sqlite3.connect(user_manager.db_path) as conn:
+        row = conn.execute(
+            "SELECT profile_data FROM users WHERE id=?", (user_id,)
+        ).fetchone()
+        profile = _json.loads(row[0]) if row and row[0] else {}
+
+        if atype == 'pre':
             profile['session'] = 2
+            profile['pre_completed_at'] = datetime.now().isoformat()
+        elif atype == 'post':
+            profile['session'] = 3
             profile['post_completed_at'] = datetime.now().isoformat()
-            conn.execute(
-                "UPDATE users SET profile_data=? WHERE id=?",
-                (_json.dumps(profile), user_id)
-            )
+
+        conn.execute(
+            "UPDATE users SET profile_data=? WHERE id=?",
+            (_json.dumps(profile), user_id)
+        )
 
     response = {
         'score':         score,
